@@ -1,0 +1,64 @@
+4月2日（周四）
+今天摸鱼时间挺长的，先想想今天都干了些啥
+首先是把bi的主界面内容改了，昨天做的是全量累计数据，但是这种东西完全没有实际意义，改成了去年全年和今年累计的销售金额数据。
+上了了销售退货和净销售额的区域结构PieChart以及这仨的年同比数据表
+增加了退货金额占比的折线图还有对应的年同比数据表
+
+何老板聊了一下内网穿透的事（没用着呢技术化的次，就说的是手机也能看的事），反馈了一下当前的情况和花生壳的价格，老板觉得前期叫内勤截图转发凑合凑合先。
+
+下午搓了个轮子，metabase能用同一个question搓很多东西，所以写的有点杂，之后要干点别的把注释和一些具体内容稍微修修改改缝缝补补就能到处用了：
+```sql
+WITH lastYear AS (
+select
+    h.Lv2 as 一级区域,
+    --COALESCE(NULLIF(NULLIF(h.Lv3, ''), 'NULL'), '-') as "二级区域",
+    --COALESCE(NULLIF(NULLIF(h.Lv4, ''), 'NULL'), '-') as "三级区域",
+    --COALESCE(NULLIF(NULLIF(h.Lv5, ''), 'NULL'), '-') as "四级区域",
+    --COALESCE(NULLIF(NULLIF(h.Lv6, ''), 'NULL'), '-') as "五级区域",
+	sum(c.金额) as 总金额,
+	sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end) as 销售金额,
+	sum(case when c.出入库类型 = '退货入库' then c.金额 else 0 end) as 退货金额,
+	ABS(SUM(CASE WHEN c.出入库类型 = '退货入库' THEN c.金额 ELSE 0 END)) * 1.0 
+	/ 
+	NULLIF(sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end), 0) as 退货金额占比,
+	strftime('%Y-%m', c.出入库时间) AS 时间
+FROM
+	map_region_id_to_hierarchy AS h
+LEFT JOIN map_erppath_to_region_id AS e ON h.id = e.id
+LEFT JOIN 客户信息 AS k ON e.Path = k.所属区域
+LEFT JOIN 出入库明细 AS c ON k.客户编码 = c.客户编码
+WHERE c.出入库时间 >= datetime('now','-1 year','start of year') and c.出入库时间 < datetime(datetime('now','-1 day','-1 year'),'+1 day')
+GROUP BY
+	一级区域),
+thisYear AS (
+select
+    h.Lv2 as 一级区域,
+    --COALESCE(NULLIF(NULLIF(h.Lv3, ''), 'NULL'), '-') as "二级区域",
+    --COALESCE(NULLIF(NULLIF(h.Lv4, ''), 'NULL'), '-') as "三级区域",
+    --COALESCE(NULLIF(NULLIF(h.Lv5, ''), 'NULL'), '-') as "四级区域",
+    --COALESCE(NULLIF(NULLIF(h.Lv6, ''), 'NULL'), '-') as "五级区域",
+	sum(c.金额) as 总金额,
+	sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end) as 销售金额,
+	sum(case when c.出入库类型 = '退货入库' then c.金额 else 0 end) as 退货金额,
+	ABS(SUM(CASE WHEN c.出入库类型 = '退货入库' THEN c.金额 ELSE 0 END)) * 1.0 
+	/ 
+	NULLIF(sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end), 0) as 退货金额占比,
+	strftime('%Y-%m', c.出入库时间) AS 时间
+FROM
+	map_region_id_to_hierarchy AS h
+LEFT JOIN map_erppath_to_region_id AS e ON h.id = e.id
+LEFT JOIN 客户信息 AS k ON e.Path = k.所属区域
+LEFT JOIN 出入库明细 AS c ON k.客户编码 = c.客户编码
+WHERE c.出入库时间 >= datetime('now','start of year') and c.出入库时间 < datetime('now')
+GROUP BY
+	一级区域)
+
+SELECT
+	thisYear.一级区域,
+	(thisYear.总金额-lastYear.总金额)/lastYear.总金额 as 净销售额涨幅,
+	(thisYear.销售金额-lastYear.销售金额)/lastYear.销售金额 as 销售额涨幅,
+	(thisYear.退货金额占比-lastYear.退货金额占比)/nullif(lastYear.退货金额占比,0) as 退货额占比涨幅
+from lastYear
+join thisYear on thisYear.一级区域 = lastYear.一级区域
+```
+metabase的进一步功能都还不太熟，也先这么凑合着之后边学边优化
