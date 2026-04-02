@@ -63,3 +63,4 @@ from lastYear
 join thisYear on thisYear.一级区域 = lastYear.一级区域
 ```
 metabase的进一步功能都还不太熟，也先这么凑合着之后边学边优化
+啊对忘了个事，明天得把ER图整理出来，不然早晚会出事。
