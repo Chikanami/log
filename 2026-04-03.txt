@@ -1,0 +1,998 @@
+4月3号（周五）
+早上把比bi里的“同比去年退货金额占比涨幅”改成了“同比去年退货金额占比变动”。
+然后一整天都在和ER图（？）死磕
+因为需要将从第三方系统拿到的超级大宽表里面的东西挨个挨个分门别类，需要把每个表拆成好几个部分，所以用的flowchart模拟的ER图格式。这样以后要用的时候就方便多了，有什么变化也更好改一点。
+现在第一步完成了，之后应该能稍微好一点。
+
+```Mermaid
+flowchart TD
+
+    map_erppath_to_region_id["
+        <table border='1' style='text-align:center;'>
+
+        <th colspan='4' align='center'>map_erppath_to_region_id</th>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> Path </td>
+        <td white-space: nowrap>  </td>
+        <td white-space: nowrap> 从客户列表引用的完整路径文本 </td></tr>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> id </td>
+        <td white-space: nowrap> PK </td>
+        <td white-space: nowrap> 层级路径id </td></tr>
+
+        </table>"
+    ]
+
+    map_region_id_to_hierarchy["
+        <table border='1' style='text-align:center;'>
+
+        <th colspan='4' align='center'>map_region_id_to_hierarchy</th>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> id </td>
+        <td white-space: nowrap> UK </td>
+        <td align='center'> 层级路径id </td></tr>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> Lv1 </td>
+        <td white-space: nowrap>  </td>
+        <td white-space: nowrap> 销售部 </td></tr>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> Lv2 </td>
+        <td white-space: nowrap>  </td>
+        <td white-space: nowrap> 事实一级层，四川重庆等 </td></tr>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> Lv3 </td>
+        <td white-space: nowrap>  </td>
+        <td white-space: nowrap> 事实二级层，流通部、大客户部等 </td></tr>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> Lv4 </td>
+        <td white-space: nowrap>  </td>
+        <td white-space: nowrap> 事实三级层，二基层下的子级分区，如“四川流通一部”</td></tr>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> Lv5 </td>
+        <td white-space: nowrap>  </td>
+        <td white-space: nowrap> 事实四级层，区县，或四川流通一部的子级分区</td></tr>
+
+        <tr><td white-space: nowrap> string </td>
+        <td white-space: nowrap> Lv6 </td>
+        <td white-space: nowrap>  </td>
+        <td white-space: nowrap> 事实五级层，区县（当前仅四川流通一部存在） </td></tr>
+
+        <tr><td white-space: nowrap> int </td>
+        <td white-space: nowrap> Depth </td>
+        <td white-space: nowrap>  </td>
+        <td white-space: nowrap> 该条目事实层级深度 </td></tr>
+
+        </table>"
+    ]
+
+        subgraph 出入库明细
+    direction BT
+
+
+        subgraph 出入库基本信息
+        出入库基本信息:[
+        <table border='1' style='text-align:center;'>
+
+            <th colspan='4' align='center'>出入库基本信息</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 出入库时间 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 出入库单号 </td>
+            <td white-space: nowrap> PK,CK </td>
+            <td white-space: nowrap> 复合主键之一 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 出入库类型 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 出库或退货入库 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 订单退单编号 </td>
+            <td white-space: nowrap> FK </td>
+            <td white-space: nowrap> 指向订单明细 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 发货仓库 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+        </table>]
+        end
+
+        subgraph 出入库客户信息
+        出入库客户信息:[
+        <table border='1' style='text-align:center;'>
+
+            <th colspan='4' align='center'>出入库客户信息</th>
+        
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 客户编码 </td>
+            <td white-space: nowrap> FK </td>
+            <td white-space: nowrap> 指向客户信息 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 客户名称 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+            
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 所属区域 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 业务员 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 所属部门 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>]
+        end
+        
+        subgraph 出入库商品信息
+        出入库商品信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>出入库商品信息</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品编码 </td>
+            <td white-space: nowrap> PK,CK,FK </td>
+            <td white-space: nowrap> 复合主键之一 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品名称 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 规格 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品分类 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品品牌 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 最小单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 最小单位数量 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+
+        subgraph 出入库财务信息
+        出入库财务信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>出入库财务信息</th>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 出入库数量 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 单价 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 金额 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+        subgraph 出入库其他信息
+        出入库其他信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>出入库其他信息</th>
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 订单商品备注 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 出库商品备注 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 库位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 销售方式 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 供货方 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 订退单收退款状态 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 发货状态 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 签收状态 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+        subgraph 出入库明细未启用字段
+        出入库明细未启用字段:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>出入库明细未启用字段</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 套餐名称 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 套餐编码 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品条码 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品简称 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+        </table>
+        ]
+    end
+end
+
+    subgraph 客户信息
+    direction BT
+
+
+        subgraph 客户基本信息
+        客户基本信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>客户基本信息</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 客户名称 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 客户编码 </td>
+            <td white-space: nowrap> UK </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 订货账号 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 所属区域 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 指向map_erppath_to_region_id </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 配送线路 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 状态 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 指该客户的订货账号是否启用 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 客户分类 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品授权方案 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 默认发货仓库 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+        </table>
+    ]
+    end
+        subgraph 客户联系方式
+        客户联系方式:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>客户联系方式</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 联系人 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 联系电话 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 联系省市区 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 联系详细地址 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 收货联系人 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 收货联系电话 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 收货省市区 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 收货详细地址 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+        </table>
+    ]
+    end
+        subgraph 客户来源信息
+        客户来源信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>客户来源信息</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 客户来源 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 加盟时间 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 最近登录时间 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 推荐人类型 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 推荐人 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+        subgraph 客户财务信息
+        客户财务信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>客户财务信息</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 定价方式 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 订货价格类型 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 最近订货价 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 开关类字段，用于开关ERP系统中自动填写最后一次售价 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 信用额度 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 结算模式 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 付款期限 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 结算客户 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+            
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 订货限额 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 认证状态 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+        subgraph 客户信息未启用字段
+        客户信息未启用字段:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>客户信息未启用字段</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 物流编码 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+            
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 会员到期日 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+            
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 对账日 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+            
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 可下单时间 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+
+        </table>
+        ]
+    end
+end
+
+    subgraph 商品列表
+    direction BT
+
+        subgraph 商品基本信息
+        商品基本信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品基本信息</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品编码 </td>
+            <td white-space: nowrap> UK </td>
+            <td white-space: nowrap>  </td></tr>
+
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品标题 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品品牌 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+
+        subgraph 商品规格信息
+        商品规格信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品规格信息</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 规格信息_多规格字段设置 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 部分商品存在多种规格 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 规格信息_规格1内容 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 规格信息_规格排序 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 多规格商品的不同规格排序序号 </td></tr>
+
+        </table>
+    ]
+    end
+
+        subgraph 商品分类信息
+        商品分类信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品分类信息</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品标签 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 一级分类 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+
+        subgraph 商品销售状态
+        商品销售状态:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品销售状态</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 订货商城是否上架 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品状态 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 是否停采或停售 </td></tr>
+
+        </table>
+    ]
+    end
+
+        subgraph 商品计量单位
+        商品计量单位:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品计量单位</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 计量单位_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 计量单位_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 同一商品存在不同包装规模，出商品本身包装外，同时可装箱等 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 单位换算率_基础 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 单位换算率_副1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 采购单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 分销单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 统计单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+
+        subgraph 商品价格信息
+        商品价格信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品价格信息</th>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 基准订货价_市场价_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 基准订货价_市场价_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 一级批发价_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 一级批发价_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 二级批发价_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 二级批发价_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 三级批发价_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 三级批发价_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 四级批发价_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 四级批发价_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 最高限价_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 最高限价_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 最低限价_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 最低限价_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+
+        subgraph 商品生产端信息
+        商品生产端信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品生产端信息</th>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 商品重量 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 保质期 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 原始数据本身包含单位 </td></tr>
+            
+
+        </table>
+    ]
+    end
+
+        subgraph 商品销售端信息
+        商品销售端信息:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品销售端信息</th>
+
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 排序值 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 搜索关键字 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 是否包邮 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 运费单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 校验库存 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 启用生产日期管理 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 客户商城上架时间 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 客户商城下架时间 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 创建时间 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 修改时间 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 库存数 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap>  </td></tr>
+
+        </table>
+    ]
+    end
+        subgraph 商品信息未启用字段
+        商品信息未启用字段:[
+        <table border='1' style='text-align:center;'>
+            <th colspan='4' align='center'>商品信息未启用字段</th>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品条码 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 商品简称 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 规格信息_规格2内容 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 规格信息_规格3内容 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 分拣标签 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 二级分类 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 三级分类 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 四级分类 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 计量单位_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 单位换算率_副2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 辅助单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 辅助单位换算率 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 基准进货价_采购价_基础单位 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 该信息不通过ERP </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 基准进货价_采购价_副单位1 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 该信息不通过ERP </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 基准进货价_采购价_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 该信息不通过ERP </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 基准订货价_市场价_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 一级批发价_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 二级批发价_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 三级批发价_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 四级批发价_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 最高限价_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 最低限价_副单位2 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 产地 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+            
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 限订量 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 起订量 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 订货倍数 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> float </td>
+            <td white-space: nowrap> 销项税率 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 运费模板 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 副单位1条码 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+            <tr><td white-space: nowrap> string </td>
+            <td white-space: nowrap> 副单位2条码 </td>
+            <td white-space: nowrap>  </td>
+            <td white-space: nowrap> 未启用字段 </td></tr>
+
+        </table>
+        ]
+    end
+end
+
+客户基本信息-->客户联系方式
+客户基本信息-->客户来源信息
+客户基本信息-->客户财务信息
+
+出入库客户信息---出入库基本信息
+出入库基本信息-->出入库财务信息
+出入库基本信息-->出入库其他信息
+
+商品基本信息-->商品规格信息
+商品基本信息-->商品分类信息
+商品基本信息-->商品销售状态
+商品基本信息-->商品计量单位
+商品基本信息-->商品价格信息
+商品基本信息-->商品生产端信息
+商品基本信息-->商品销售端信息
+
+map_erppath_to_region_id--"id-||--||-id"---map_region_id_to_hierarchy
+客户基本信息--"客户编码-||--||-客户编码"---出入库客户信息
+出入库客户信息--"所属区域-||--||-Path"---map_erppath_to_region_id
+商品基本信息--"商品编码-||--||-商品编码"---出入库商品信息
+
+```
