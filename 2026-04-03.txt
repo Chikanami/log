@@ -211,7 +211,7 @@ flowchart TD
             <tr><td white-space: nowrap> float </td>
             <td white-space: nowrap> 单价 </td>
             <td white-space: nowrap>  </td>
-            <td white-space: nowrap>  </td></tr>
+            <td white-space: nowrap> 赠品单价为0 </td></tr>
 
             <tr><td white-space: nowrap> float </td>
             <td white-space: nowrap> 金额 </td>
