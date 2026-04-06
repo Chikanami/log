@@ -1,6 +1,8 @@
 4月6日（周一）
 感觉有点不太对，花了一个上午的时间给自己做心理疏导，上一份工作被卸磨杀驴的负面影响似乎还没有完全消除，还是很不爽。
-下午的时候正要开始干活的时候DBeaver炸了，最开始是查询的时候报错找不到表里的列，“SQL 错误 [1]: [SQLITE_ERROR] SQL error or missing database (no such column: h.Lv2)”。
+午饭的时候销售总反馈metabase进不去，我还在纳闷怎么回事她又告诉我从一开始就进不去。排查之后才发现这公司有四条独立宽带，财务部一条，我在的办公室一条，销售总那边的区域一条，老板办公室还有一条。也就是说看起来都是在一个公司里但实际上相互之间都是外部网络。看样子老板省不了那一年398的花生壳了，前期还没有正式上线的时候可以用cpolar凑合凑合，反正都是临时用用，每次要的时候整个就行。
+
+再晚点正要开始干活，DBeaver炸了，最开始是查询的时候报错找不到表里的列，“SQL 错误 [1]: [SQLITE_ERROR] SQL error or missing database (no such column: h.Lv2)”。
 尝试重新连接数据库有报错：“Datasource was invalidated  Live connection count: 1/”。
 关闭Metabase、重装数据库驱动、重启DBeaver、重启计算机都没用，最后把DBeaver卸载重装了才弄好。
 搞定之后和销售总对了一下数据，发现数据对不上，有个部门有一万多块钱的差异，查了一下差异是从ERP里出来的。
