@@ -1,0 +1,8 @@
+4月6日（周一）
+感觉有点不太对，花了一个上午的时间给自己做心理疏导。
+下午的时候正要开始干活的时候DBeaver炸了，最开始是查询的时候报错找不到表里的列，“SQL 错误 [1]: [SQLITE_ERROR] SQL error or missing database (no such column: h.Lv2)”。
+尝试重新连接数据库有报错：“Datasource was invalidated  Live connection count: 1/”。
+关闭Metabase、重装数据库驱动、重启DBeaver、重启计算机都没用，最后把DBeaver卸载重装了才弄好。
+搞定之后和销售总对了一下数据，发现数据对不上有一万多块钱的差异，查了一下差异是从ERP里出来的。
+几个人在一块儿挠脑袋挠了半天，最后发现是因为3月初调整了ERP里的组织架构，导致部分过去在A分支的客户调整到B分支后，其退货退款的金额被计算到B分支中产生的差异。
+看起来之后还得把这个处理一下，嗯……桥接表数量+1好了。
