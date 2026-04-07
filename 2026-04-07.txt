@@ -5,50 +5,53 @@
 下午又搓了个新的轮子，现在是……14:14，销售额这块这俩轮子差不多够用了。
 ```sql
 WITH base_data AS (
-select
-    h.Lv2 as 一级区域,
-    COALESCE(NULLIF(NULLIF(h.Lv3, ''), 'NULL'), '-') as "二级区域",
-    COALESCE(NULLIF(NULLIF(h.Lv4, ''), 'NULL'), '-') as "三级区域",
-    --COALESCE(NULLIF(NULLIF(h.Lv5, ''), 'NULL'), '-') as "四级区域",
-    --COALESCE(NULLIF(NULLIF(h.Lv6, ''), 'NULL'), '-') as "五级区域",
-	sum(c.金额) as 总金额,
-	sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end) as 销售金额,
-	sum(case when c.出入库类型 = '退货入库' then c.金额 else 0 end) as 退货金额,
-	ABS(SUM(CASE WHEN c.出入库类型 = '退货入库' THEN c.金额 ELSE 0 END)) * 1.0 
-	/ 
-	NULLIF(sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end), 0) as 退货额占比,
-	strftime('%Y-%m', c.出入库时间) AS 时间
-FROM
-	map_region_id_to_hierarchy AS h
-LEFT JOIN map_erppath_to_region_id AS e ON h.id = e.id
-LEFT JOIN 客户信息 AS k ON e.Path = k.所属区域
-LEFT JOIN 出入库明细 AS c ON k.客户编码 = c.客户编码
-WHERE c.出入库时间 >= datetime('now','-1 year','start of year')
-	and c.出入库时间 < datetime('now','start of year')
-	AND h.Lv2 = '四川业务' 
-	--AND h.Lv2 = '重庆业务'
-	--AND h.Lv2 = '外围综合部'
-GROUP BY
-	1,2,3
-having    总金额 <> 0)
-
-SELECT * FROM base_data
-
-UNION ALL
+    SELECT
+        h.Lv2 as 一级区域,
+        COALESCE(NULLIF(NULLIF(h.Lv3, ''), 'NULL'), '-') as 二级区域,
+        COALESCE(NULLIF(NULLIF(h.Lv4, ''), 'NULL'), '-') as 三级区域,
+        sum(c.金额) as 总金额,
+        sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end) as 销售金额,
+        sum(case when c.出入库类型 = '退货入库' then c.金额 else 0 end) as 退货金额,
+        ABS(SUM(CASE WHEN c.出入库类型 = '退货入库' THEN c.金额 ELSE 0 END)) * 1.0 
+        / NULLIF(sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end), 0) as 退货额占比,
+        strftime('%Y-%m', c.出入库时间) AS 时间
+    FROM map_region_id_to_hierarchy AS h
+    LEFT JOIN map_erppath_to_region_id AS e ON h.id = e.id
+    LEFT JOIN 客户信息 AS k ON e.Path = k.所属区域
+    LEFT JOIN 出入库明细 AS c ON k.客户编码 = c.客户编码
+    WHERE c.出入库时间 >= datetime('now','start of year')
+        AND h.Lv2 = '四川业务' 
+    GROUP BY 1, 2
+    HAVING 总金额 <> 0
+),
+union_data AS (
+    SELECT * FROM base_data
+    
+    UNION ALL
+    
+    SELECT 
+        '总计' AS 一级区域,
+        '总计' AS 二级区域,
+        '总计' AS 三级区域,
+        sum(总金额) as 总金额,
+        sum(销售金额) as 销售金额,
+        sum(退货金额) as 退货金额,
+        ABS(sum(退货金额)) * 1.0 / NULLIF(sum(销售金额), 0) as 退货额占比,
+        MAX(时间) as 时间 
+    FROM base_data
+)
 
 SELECT 
-	'总计' AS 一级区域,
-    '总计' AS 二级区域,
-	'总计' AS 三级区域,
-	--'总计' AS 四级区域,
-	--'总计' AS 五级区域,
-	sum(总金额) as 总金额,
-	sum(销售金额) as 销售金额,
-	sum(退货金额) as 退货金额,
-	ABS(sum(退货金额)) * 1.0 
-	/ 
-	NULLIF(sum(销售金额), 0) as 退货额占比,
-	时间
-FROM base_data;
+    一级区域,
+    二级区域,
+    三级区域,
+    总金额,
+    销售金额,
+    CASE WHEN ABS(退货金额) < 0.01 THEN 1 ELSE 退货金额 END AS 退货金额,
+    退货额占比,
+    时间
+FROM union_data;
 ```
 然后又花了挺长时间给自己做心理建设，是在实装区域直接干还是在纠结在草稿上搞定再实装，主要是嫌麻烦不想动。
+metabase在系列值为0时饼图会炸，又把刚刚的轮子更新了一下加上了“union_data”的那堆东西，实在不想动把需求塞给gemini叫它帮我敲了。
+
