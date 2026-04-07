@@ -5,6 +5,7 @@
 下午又搓了个新的轮子，现在是……14:14，销售额这块这俩轮子差不多够用了。
 ```sql
 WITH base_data AS (
+    -- 第一层：最干净的基础明细数据，不用在这里考虑 0 的问题
     SELECT
         h.Lv2 as 一级区域,
         COALESCE(NULLIF(NULLIF(h.Lv3, ''), 'NULL'), '-') as 二级区域,
@@ -25,6 +26,7 @@ WITH base_data AS (
     HAVING 总金额 <> 0
 ),
 union_data AS (
+    -- 第二层：执行拼接，这里你可以继续优雅地使用 SELECT * 和基础的 SUM
     SELECT * FROM base_data
     
     UNION ALL
@@ -41,13 +43,15 @@ union_data AS (
     FROM base_data
 )
 
+-- 第三层（展示层）：专门处理 Metabase 前端渲染 Bug
+-- 以后不管里面怎么改，只要保证对外输出的列名不变，这里的除零逻辑就永远生效
 SELECT 
     一级区域,
     二级区域,
     三级区域,
     总金额,
     销售金额,
-    CASE WHEN ABS(退货金额) < 0.01 THEN 1 ELSE 退货金额 END AS 退货金额,
+    CASE WHEN ABS(退货金额) < 1 THEN -1 ELSE 退货金额 END AS 退货金额,
     退货额占比,
     时间
 FROM union_data;
