@@ -1,1 +1,49 @@
 4月7日（周二）
+上午一边摸鱼一边弄明白这个ERP里的退货数据咋回事了——退货单和客户的订单不存在直接关联，也就是说只能知道某个客户在什么时候退了多少货，但是没办法知道这批货是什么时候卖个这个客户的哪一批货。漂亮
+算了就这么地吧，等过阵子老板还有销售总忙完了再找他们说这事，就先凑合这直接来，反正有轮子之后也好改。
+
+下午重新搓了新的轮子，比之前的好用现在是……14:14。
+```sql
+WITH base_data AS (
+select
+    h.Lv2 as 一级区域,
+    COALESCE(NULLIF(NULLIF(h.Lv3, ''), 'NULL'), '-') as "二级区域",
+    COALESCE(NULLIF(NULLIF(h.Lv4, ''), 'NULL'), '-') as "三级区域",
+    --COALESCE(NULLIF(NULLIF(h.Lv5, ''), 'NULL'), '-') as "四级区域",
+    --COALESCE(NULLIF(NULLIF(h.Lv6, ''), 'NULL'), '-') as "五级区域",
+	sum(c.金额) as 总金额,
+	sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end) as 销售金额,
+	sum(case when c.出入库类型 = '退货入库' then c.金额 else 0 end) as 退货金额,
+	ABS(SUM(CASE WHEN c.出入库类型 = '退货入库' THEN c.金额 ELSE 0 END)) * 1.0 
+	/ 
+	NULLIF(sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end), 0) as 退货额占比,
+	strftime('%Y-%m', c.出入库时间) AS 时间
+FROM
+	map_region_id_to_hierarchy AS h
+LEFT JOIN map_erppath_to_region_id AS e ON h.id = e.id
+LEFT JOIN 客户信息 AS k ON e.Path = k.所属区域
+LEFT JOIN 出入库明细 AS c ON k.客户编码 = c.客户编码
+WHERE c.出入库时间 >= datetime('now','-1 year','start of year') and c.出入库时间 < datetime('now','start of year') AND h.Lv2 = '四川业务' --AND h.Lv2 = '重庆业务' AND h.Lv2 = '外围综合部'
+GROUP BY
+	1,2,3
+having    总金额 <> 0)
+
+SELECT * FROM base_data
+
+UNION ALL
+
+SELECT 
+	'总计' AS 一级区域,
+    '总计' AS 二级区域,
+	'总计' AS 三级区域,
+	--'总计' AS 四级区域,
+	--'总计' AS 五级区域,
+	sum(总金额) as 总金额,
+	sum(销售金额) as 销售金额,
+	sum(退货金额) as 退货金额,
+	ABS(sum(退货金额)) * 1.0 
+	/ 
+	NULLIF(sum(销售金额), 0) as 退货额占比,
+	时间
+FROM base_data;
+```
