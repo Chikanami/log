@@ -23,7 +23,11 @@ FROM
 LEFT JOIN map_erppath_to_region_id AS e ON h.id = e.id
 LEFT JOIN 客户信息 AS k ON e.Path = k.所属区域
 LEFT JOIN 出入库明细 AS c ON k.客户编码 = c.客户编码
-WHERE c.出入库时间 >= datetime('now','-1 year','start of year') and c.出入库时间 < datetime('now','start of year') AND h.Lv2 = '四川业务' --AND h.Lv2 = '重庆业务' AND h.Lv2 = '外围综合部'
+WHERE c.出入库时间 >= datetime('now','-1 year','start of year')
+	and c.出入库时间 < datetime('now','start of year')
+	AND h.Lv2 = '四川业务' 
+	--AND h.Lv2 = '重庆业务'
+	--AND h.Lv2 = '外围综合部'
 GROUP BY
 	1,2,3
 having    总金额 <> 0)
