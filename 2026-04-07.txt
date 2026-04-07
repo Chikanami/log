@@ -47,7 +47,7 @@ SELECT
     三级区域,
     总金额,
     销售金额,
-    CASE WHEN ABS(退货金额) > -1 THEN -1 ELSE 退货金额 END AS 退货金额,
+    CASE WHEN ABS(退货金额) < 1 THEN -1 ELSE 退货金额 END AS 退货金额,
     退货额占比,
     时间
 FROM union_data;
