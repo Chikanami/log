@@ -5,10 +5,13 @@
 下午又搓了个新的轮子，现在是……14:14，销售额这块这俩轮子差不多够用了。
 ```sql
 WITH base_data AS (
+
     SELECT
         h.Lv2 as 一级区域,
         COALESCE(NULLIF(NULLIF(h.Lv3, ''), 'NULL'), '-') as 二级区域,
         COALESCE(NULLIF(NULLIF(h.Lv4, ''), 'NULL'), '-') as 三级区域,
+		--COALESCE(NULLIF(NULLIF(h.Lv5, ''), 'NULL'), '-') as "四级区域",
+    	--COALESCE(NULLIF(NULLIF(h.Lv6, ''), 'NULL'), '-') as "五级区域",
         sum(c.金额) as 总金额,
         sum(case when c.出入库类型 = '销售出库' then c.金额 else 0 end) as 销售金额,
         sum(case when c.出入库类型 = '退货入库' then c.金额 else 0 end) as 退货金额,
@@ -20,11 +23,14 @@ WITH base_data AS (
     LEFT JOIN 客户信息 AS k ON e.Path = k.所属区域
     LEFT JOIN 出入库明细 AS c ON k.客户编码 = c.客户编码
     WHERE c.出入库时间 >= datetime('now','start of year')
-        AND h.Lv2 = '四川业务' 
+        AND h.Lv2 = '四川业务'
+		--AND h.Lv2 = '重庆业务'
+		--AND h.Lv2 = '外围综合部'
     GROUP BY 1, 2
     HAVING 总金额 <> 0
 ),
 union_data AS (
+
     SELECT * FROM base_data
     
     UNION ALL
@@ -33,6 +39,8 @@ union_data AS (
         '总计' AS 一级区域,
         '总计' AS 二级区域,
         '总计' AS 三级区域,
+		--'总计' AS 四级区域,
+		--'总计' AS 五级区域,
         sum(总金额) as 总金额,
         sum(销售金额) as 销售金额,
         sum(退货金额) as 退货金额,
@@ -45,6 +53,8 @@ SELECT
     一级区域,
     二级区域,
     三级区域,
+		--'总计' AS 四级区域,
+		--'总计' AS 五级区域,
     总金额,
     销售金额,
     CASE WHEN ABS(退货金额) < 1 THEN -1 ELSE 退货金额 END AS 退货金额,
@@ -59,3 +69,5 @@ FROM union_data;
 正好碰到了老板准备出门，拉着他说了下公司网络的事，定了明显下午详聊。
 
 感觉今天过了个关，前阵子不少问题卡了挺久，之后应该就能顺畅多了。
+
+woc才发现狗日的gemini把我预留的注释给删了，又重新把注释加上了。
