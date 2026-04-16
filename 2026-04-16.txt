@@ -1,0 +1,62 @@
+4月16号（周四）
+把map_erppath_to_region_id改了一下，这个表之前只放了完整的路径文本“Path”和对应的id。
+现在把每个Path所归属的实际组织结构塞进去了，现在长这样：
+```csv
+Path,id,大区,部门,区域,负责人
+```
+重新搓了个视图，这样之后就能轻松很多了
+```csv
+日期,Path,大区,部门,区域,负责人,出入库类型,金额,客户数量,商品数量
+```
+大区、部门、区域和负责人适合目标表一致的，问题解决.png
+
+是时候把metabase推倒重做了。
+嗯对还有个东西得记着，现在业务那边需求的同比不是字面意义上的同比，是以去年同月业绩为参考线的达成进度，还得挠挠脑袋这个指标要起个什么名字。
+ChatGPT建议用“去年同月进度/达成率”，不用自己动脑子想这种事真好。
+
+赶在下班前在metabase里搓了个model之后可以直接用：
+```sql
+SELECT
+	b.大区,
+	b.部门,
+	b.区域,
+	c.负责人,
+	strftime('%Y-%m-%d',a.日期) as 日期,
+	SUM(case when a.出入库类型 = '销售出库' then a.金额 else 0 end) as 销售金额,
+	SUM(case when a.出入库类型 = '退货入库' then a.金额 else 0 end) as 退货金额,
+	sum(a.金额) as 净销售额,
+	SUM(SUM(case when a.出入库类型 = '销售出库' then a.金额 else 0 end)) OVER (
+        PARTITION BY strftime('%Y-%m', 日期), b.大区, b.部门, b.区域
+        ORDER BY 日期
+    ) AS 当月销售累计金额,
+	SUM(SUM(case when a.出入库类型 = '退货入库' then a.金额 else 0 end)) OVER (
+        PARTITION BY strftime('%Y-%m', 日期), b.大区, b.部门, b.区域
+        ORDER BY 日期
+    ) AS 当月退货累计金额,
+	SUM(sum(a.金额)) OVER (
+        PARTITION BY strftime('%Y-%m', 日期), b.大区, b.部门, b.区域
+        ORDER BY 日期
+    ) AS 当月累计净销售额,
+	sum(a.客户数量) as 客户数量,
+	sum(a.商品数量) as 商品数量,
+		SUM(sum(a.客户数量)) OVER (
+        PARTITION BY strftime('%Y-%m', 日期), b.大区, b.部门, b.区域
+        ORDER BY 日期
+    ) AS 当月累计客户数量,
+	SUM(sum(a.商品数量)) OVER (
+        PARTITION BY strftime('%Y-%m', 日期), b.大区, b.部门, b.区域
+        ORDER BY 日期
+    ) AS 当月累计商品数量
+FROM 目标每月明细 as b
+left join map_erppath_to_region_id as c on c.大区 = b.大区 and c.部门 = b.部门 and c.区域=b.区域
+left JOIN 区域指标聚合 as a on c.Path = a.Path
+where a.金额 <> "" and b.区域 = '一区'
+group by 
+	b.大区,
+	b.部门,
+	b.区域,
+	c.负责人,
+	日期
+order by 
+	日期
+```
