@@ -50,7 +50,7 @@ SELECT
 FROM 目标每月明细 as b
 left join map_erppath_to_region_id as c on c.大区 = b.大区 and c.部门 = b.部门 and c.区域=b.区域
 left JOIN 区域指标聚合 as a on c.Path = a.Path
-where a.金额 <> "" and b.区域 = '一区'
+where a.金额 <> ""
 group by 
 	b.大区,
 	b.部门,
@@ -60,3 +60,5 @@ group by
 order by 
 	日期
 ```
+————————————
+刚刚注意到测试的时候用的一些东西忘删了。
